@@ -13,11 +13,11 @@
 		"packages-update": "wp-scripts packages-update",
 		"plugin-zip": "wp-scripts plugin-zip",
 		"start": "wp-scripts start --webpack-copy-php --blocks-manifest",
-		"env": "wp-env",
-		"wp-env": "wp-env start"
-
+		"server": "wp-env start",
+		"server-stop": "wp-env stop"
 	},
 	"devDependencies": {
+		"@wordpress/env": "^10.33.0",
 		"@wordpress/scripts": "^30.26.0",
 		"ajv": "^8.17.1",
 		"ajv-keywords": "^5.1.0"
