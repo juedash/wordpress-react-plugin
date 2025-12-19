@@ -20,6 +20,14 @@
  * @see https://developer.wordpress.org/block-editor/reference-guides/block-api/block-metadata/#view-script
  */
 
-/* eslint-disable no-console */
-console.log( 'Hello World! (from blog-filters-blog-filters block)' );
-/* eslint-enable no-console */
+import { createRoot } from "@wordpress/element";
+import BlogFiltersFrontend from "./frontend";
+
+// Global, page-level guard
+if (!window.__BLOG_FILTERS_REACT_MOUNTED__) {
+	window.__BLOG_FILTERS_REACT_MOUNTED__ = true;
+
+	document.querySelectorAll(".blog-filters-dynamic-block").forEach((el) => {
+		createRoot(el).render(<BlogFiltersFrontend />);
+	});
+}

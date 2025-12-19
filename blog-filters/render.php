@@ -13,8 +13,13 @@
 
 
 <?php
-echo '<div ' . get_block_wrapper_attributes(
-    [
-    'class' => 'blog-filters-dynamic-block'
-    ]
-) . '></div>';
+if (! defined('ABSPATH') ) {
+    exit;
+}
+
+document.addEventListener("click", (e) => {
+  if (!e.target.matches("[data-cat]")) return;
+
+  const cat = e.target.dataset.cat;
+  // fetch posts + update <ul>
+});

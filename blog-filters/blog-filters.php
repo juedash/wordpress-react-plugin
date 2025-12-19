@@ -58,20 +58,3 @@ function blog_filters_blog_filters_block_init()
     }
 }
 add_action('init', 'blog_filters_blog_filters_block_init');
-
-function blog_filters_enqueue_frontend()
-{
-    $frontend_js = __DIR__ . '/build/render.js'; // <- change this to render.js
-    if (file_exists($frontend_js) ) {
-        wp_enqueue_script(
-            'blog-filters-frontend',
-            plugins_url('build/render.js', __FILE__),
-            array('wp-element'), // <- this loads React and ReactDOM for you
-            filemtime(__DIR__ . '/build/render.js'),
-            true
-        );
-
-    }
-}
-add_action('wp_enqueue_scripts', 'blog_filters_enqueue_frontend');
-
