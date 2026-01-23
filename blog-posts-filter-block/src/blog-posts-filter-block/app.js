@@ -1,41 +1,53 @@
-import { useEffect, useMemo, useState } from '@wordpress/element';
-import apiFetch from '@wordpress/api-fetch';
-import { Spinner } from '@wordpress/components';
+import { useEffect, useMemo, useState } from "@wordpress/element";
+import apiFetch from "@wordpress/api-fetch";
+import { Spinner } from "@wordpress/components";
+import { decodeEntities } from "@wordpress/html-entities";
+
+const getCurrentLang = () => {
+	const raw = document?.documentElement?.lang || "en";
+	return raw.split("-")[0]; 
+};
+
+const lang = getCurrentLang();
 
 const buildPostsPath = ({ perPage, page, cat }) => {
 	const params = new URLSearchParams();
-	params.set('per_page', String(perPage));
-	params.set('page', String(page));
-	params.set('_embed', '1');
-	params.set('orderby', 'date');
-	params.set('order', 'desc');
+	params.set("per_page", String(perPage));
+	params.set("page", String(page));
+	params.set("_embed", "1");
+	params.set("orderby", "date");
+	params.set("order", "desc");
 
-	if (cat && Number(cat) > 0) params.set('categories', String(cat));
+	if (cat && Number(cat) > 0) params.set("categories", String(cat));
+
+	if (lang) params.set("lang", lang);
+
 	return `/wp/v2/posts?${params.toString()}`;
 };
 
 const getFeaturedImage = (post) => {
-	const media = post?._embedded?.['wp:featuredmedia']?.[0];
+	const media = post?._embedded?.["wp:featuredmedia"]?.[0];
 	return {
-		url: media?.source_url || '',
-		alt: media?.alt_text || '',
+		url: media?.source_url || "",
+		alt: media?.alt_text || "",
 	};
 };
 
 const getCategories = (post) => {
-	const terms = post?._embedded?.['wp:term']?.[0] || [];
+	const terms = post?._embedded?.["wp:term"]?.[0] || [];
 	return terms.map((t) => ({ id: t.id, name: t.name, link: t.link }));
 };
 
-const estimateReadTimeRange = (html = '', wpm = 200) => {
-	const text = html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-	const words = text ? text.split(' ').length : 0;
+const estimateReadTime = (html = "", wpm = 200) => {
+	const text = html
+		.replace(/<[^>]*>/g, " ")
+		.replace(/\s+/g, " ")
+		.trim();
 
-	const minutes = words / wpm;
-	const low = Math.max(1, Math.floor(minutes));
-	const high = Math.max(low, Math.ceil(minutes));
+	const words = text ? text.split(" ").length : 0;
+	const minutes = Math.max(1, Math.round(words / wpm));
 
-	return low === high ? `${low} min` : `${low}–${high} min`;
+	return `${minutes} min`;
 };
 
 export default function PostsGrid({ perPage = 6, columns = 3 }) {
@@ -50,21 +62,23 @@ export default function PostsGrid({ perPage = 6, columns = 3 }) {
 	const [totalPages, setTotalPages] = useState(1);
 	const [loadingPosts, setLoadingPosts] = useState(true);
 
-	const [error, setError] = useState('');
+	const [error, setError] = useState("");
 
 	// load categories (only categories that have posts)
 	useEffect(() => {
 		let cancelled = false;
 		setLoadingCats(true);
 
-		apiFetch({ path: '/wp/v2/categories?per_page=100&hide_empty=1' })
+		apiFetch({
+			path: `/wp/v2/categories?per_page=100&hide_empty=1&lang=${lang}`,
+		})
 			.then((data) => {
 				if (cancelled) return;
 				const list = Array.isArray(data) ? data : [];
 				setCats(list.filter((c) => Number(c?.count || 0) > 0));
 			})
 			.catch((e) => {
-				if (!cancelled) setError(e?.message || 'Failed to load categories');
+				if (!cancelled) setError(e?.message || "Failed to load categories");
 			})
 			.finally(() => {
 				if (!cancelled) setLoadingCats(false);
@@ -79,7 +93,7 @@ export default function PostsGrid({ perPage = 6, columns = 3 }) {
 	useEffect(() => {
 		let cancelled = false;
 		setLoadingPosts(true);
-		setError('');
+		setError("");
 
 		apiFetch({
 			path: buildPostsPath({ perPage, page, cat: activeCat }),
@@ -87,14 +101,14 @@ export default function PostsGrid({ perPage = 6, columns = 3 }) {
 		})
 			.then(async (res) => {
 				const json = await res.json();
-				const tp = Number(res.headers.get('X-WP-TotalPages') || '1');
+				const tp = Number(res.headers.get("X-WP-TotalPages") || "1");
 				if (cancelled) return;
 
 				setPosts(Array.isArray(json) ? json : []);
 				setTotalPages(tp || 1);
 			})
 			.catch((e) => {
-				if (!cancelled) setError(e?.message || 'Failed to load posts');
+				if (!cancelled) setError(e?.message || "Failed to load posts");
 			})
 			.finally(() => {
 				if (!cancelled) setLoadingPosts(false);
@@ -107,16 +121,16 @@ export default function PostsGrid({ perPage = 6, columns = 3 }) {
 
 	const gridStyle = useMemo(
 		() => ({
-			display: 'grid',
+			display: "grid",
 			gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
-			gap: '1.5rem',
+			gap: "1.5rem",
 		}),
-		[columns]
+		[columns],
 	);
 
 	const pageNumbers = useMemo(
 		() => Array.from({ length: totalPages }, (_, i) => i + 1),
-		[totalPages]
+		[totalPages],
 	);
 
 	const onSelectCat = (catId) => {
@@ -132,24 +146,22 @@ export default function PostsGrid({ perPage = 6, columns = 3 }) {
 			) : cats.length > 0 ? (
 				<ul className="nav nav-pills blog-filters mb-3">
 					<li className="nav-item">
-						<button
-							type="button"
-							className={`nav-link ${activeCat === 0 ? 'active' : ''}`}
+						<a
+							className={`nav-link ${activeCat === 0 ? "active" : ""}`}
 							onClick={() => onSelectCat(0)}
 						>
 							View all
-						</button>
+						</a>
 					</li>
 
 					{cats.map((c) => (
 						<li className="nav-item" key={c.id}>
-							<button
-								type="button"
-								className={`nav-link ${activeCat === c.id ? 'active' : ''}`}
+							<a
+								className={`nav-link ${activeCat === c.id ? "active" : ""}`}
 								onClick={() => onSelectCat(c.id)}
 							>
-								{c.name}
-							</button>
+								{decodeEntities(c.name)}
+							</a>
 						</li>
 					))}
 				</ul>
@@ -165,7 +177,7 @@ export default function PostsGrid({ perPage = 6, columns = 3 }) {
 						{posts.map((p) => {
 							const img = getFeaturedImage(p);
 							const postCats = getCategories(p);
-							const readTime = estimateReadTimeRange(p?.content?.rendered || '');
+							const readTime = estimateReadTime(p?.content?.rendered || "");
 
 							return (
 								<article
@@ -178,9 +190,9 @@ export default function PostsGrid({ perPage = 6, columns = 3 }) {
 											src={img.url}
 											alt={img.alt}
 											style={{
-												width: '100%',
-												aspectRatio: '4/3',
-												objectFit: 'cover',
+												width: "100%",
+												aspectRatio: "4/3",
+												objectFit: "cover",
 											}}
 											loading="lazy"
 										/>
@@ -191,14 +203,13 @@ export default function PostsGrid({ perPage = 6, columns = 3 }) {
 											<a
 												key={t.id}
 												href={t.link}
-												className="badge rounded-pill text-bg-light text-decoration-none"
+												className="badge bg-primary-subtle border border-primary-subtle text-primary-emphasis text-decoration-none border border-primary"
 											>
-												{t.name}
+												{decodeEntities(t.name)}
 											</a>
 										))}
 
-										<span className="small text-muted">{readTime}</span>
-										<p className="mb-0 small text-muted">Read</p>
+										<span className="small text-muted">{readTime} read</span>
 									</div>
 
 									<h3
@@ -212,17 +223,11 @@ export default function PostsGrid({ perPage = 6, columns = 3 }) {
 											dangerouslySetInnerHTML={{ __html: p.excerpt.rendered }}
 										/>
 
-										<a
-											className="stretched-link icon-link mt-2 text-decoration-none"
-											href={p.link}
-										>
-											Read more{' '}
-											<span
-												aria-hidden="true"
-												style={{ fontSize: 18, lineHeight: 1 }}
-											>
-												›
-											</span>
+										<a className="stretched-link icon-link" href={p.link}>
+											Read more
+											<svg class="icon">
+												<use href="/wp-content/themes/kp-theme/assets/fonts/icon.svg#chevron-right" />
+											</svg>
 										</a>
 									</div>
 								</article>
@@ -233,39 +238,41 @@ export default function PostsGrid({ perPage = 6, columns = 3 }) {
 					{/* Pagination (only render when more than one page) */}
 					{totalPages > 1 && (
 						<div className="pagination justify-content-center mt-4 d-flex gap-2 align-items-center">
-							<button
-								type="button"
-								className="btn btn-link prev-next text-decoration-none"
-								onClick={() => setPage((x) => Math.max(1, x - 1))}
-								disabled={page <= 1}
-							>
-								Previous
-							</button>
+							{page > 1 && (
+								<a
+									className="prev-next icon-link"
+									onClick={() => setPage((x) => Math.max(1, x - 1))}
+								>
+									Previous
+									<svg class="icon">
+										<use href="/wp-content/themes/kp-theme/assets/fonts/icon.svg#chevron-left" />
+									</svg>
+								</a>
+							)}
 
 							<div className="d-flex gap-1">
 								{pageNumbers.map((n) => (
-									<button
+									<a
 										key={n}
-										type="button"
-										className={`btn btn-link text-decoration-none ${
-											n === page ? 'fw-bold' : ''
-										}`}
+										className={`page-numbers ${n === page ? "current" : ""}`}
 										onClick={() => setPage(n)}
-										aria-current={n === page ? 'page' : undefined}
+										aria-current={n === page ? "page" : undefined}
 									>
 										{n}
-									</button>
+									</a>
 								))}
 							</div>
-
-							<button
-								type="button"
-								className="btn btn-link prev-next text-decoration-none"
-								onClick={() => setPage((x) => Math.min(totalPages, x + 1))}
-								disabled={page >= totalPages}
-							>
-								Next
-							</button>
+							{page < totalPages && (
+								<a
+									className="prev-next icon-link"
+									onClick={() => setPage((x) => Math.min(totalPages, x + 1))}
+								>
+									Next
+									<svg class="icon">
+										<use href="/wp-content/themes/kp-theme/assets/fonts/icon.svg#chevron-right" />
+									</svg>
+								</a>
+							)}
 						</div>
 					)}
 				</>
