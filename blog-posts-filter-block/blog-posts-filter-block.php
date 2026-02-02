@@ -13,7 +13,7 @@
  * @package CreateBlock
  */
 
-defined( 'ABSPATH' ) || exit;
+defined ( 'ABSPATH' ) || exit;
 
 
 add_action( 'init', function () {
