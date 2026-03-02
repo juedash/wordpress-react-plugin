@@ -46,22 +46,21 @@ export default function PostGrid({ posts = [], gridStyle }) {
 				const readTime = estimateReadTime(p?.content?.rendered || "");
 
 				return (
-					<article
-						key={p.id}
-						className="h-100 d-flex flex-column position-relative border-0"
-					>
+					<article key={p.id} className="h-100 d-flex flex-column border-0">
 						{img.url && (
-							<img
-								className="mb-3 rounded"
-								src={img.url}
-								alt={img.alt}
-								style={{
-									width: "100%",
-									aspectRatio: "4/3",
-									objectFit: "cover",
-								}}
-								loading="lazy"
-							/>
+							<a href={p.link} className="mb-3">
+								<img
+									className="rounded"
+									src={img.url}
+									alt={img.alt}
+									style={{
+										width: "100%",
+										aspectRatio: "16 / 9",
+										objectFit: "cover",
+									}}
+									loading="lazy"
+								/>
+							</a>
 						)}
 
 						<div className="d-flex gap-2 align-items-center mb-2 flex-wrap">
@@ -77,11 +76,11 @@ export default function PostGrid({ posts = [], gridStyle }) {
 
 							<span className="small text-muted">{readTime} read</span>
 						</div>
-
-						<h3
-							className="h5 mb-2"
-							dangerouslySetInnerHTML={{ __html: p.title.rendered }}
-						/>
+						<a href={p.link} className="mb-2 text-decoration-none text-body">
+							<h3
+								dangerouslySetInnerHTML={{ __html: p.title.rendered }}
+							/>
+						</a>
 
 						<div className="flex-grow-1 d-flex flex-column justify-content-between">
 							<div
@@ -89,7 +88,7 @@ export default function PostGrid({ posts = [], gridStyle }) {
 								dangerouslySetInnerHTML={{ __html: p.excerpt.rendered }}
 							/>
 
-							<a className="stretched-link icon-link" href={p.link}>
+							<a className="icon-link" href={p.link} style={{width: "max-content"}}>
 								Read more
 								<svg className="icon">
 									<use href="/wp-content/themes/kp-theme/assets/fonts/icon.svg#chevron-right" />

@@ -6,7 +6,13 @@ import PostsPagination from "./components/PostsPagination";
 import PostsGridSkeleton from "./components/PostsGridSkeleton";
 import PostsFilters from "./components/PostsFilters";
 
-const buildPostsPath = ({ perPage, page, cat }) => {
+const getPolylangLang = () => {
+	const htmlLang = document?.documentElement?.lang || "";
+	const short = htmlLang.split("-")[0].toLowerCase();
+	return short || "";
+};
+
+const buildPostsPath = ({ perPage, page, cat, catIds = [] }) => {
 	const params = new URLSearchParams();
 	params.set("per_page", String(perPage));
 	params.set("page", String(page));
@@ -16,11 +22,12 @@ const buildPostsPath = ({ perPage, page, cat }) => {
 
 	if (cat && Number(cat) > 0) {
 		params.set("categories", String(cat));
+	} else if (Array.isArray(catIds) && catIds.length) {
+		params.set("categories", catIds.join(","));
 	}
 
 	return `/wp/v2/posts?${params.toString()}`;
 };
-
 export default function App({ perPage = 6, columns = 3 }) {
 	const [cats, setCats] = useState([]);
 	const [activeCat, setActiveCat] = useState(0);
@@ -36,15 +43,29 @@ export default function App({ perPage = 6, columns = 3 }) {
 	// Fetch categories
 	useEffect(() => {
 		let cancelled = false;
+
+		const lang = getPolylangLang();
 		setLoadingCats(true);
 
-		apiFetch({ path: "/wp/v2/categories?per_page=100&hide_empty=1" })
+		const params = new URLSearchParams();
+		params.set("per_page", "100");
+		params.set("hide_empty", "1");
+		params.set("orderby", "name");
+		params.set("order", "asc");
+		if (lang) params.set("lang", lang); // Polylang REST must support this
+
+		apiFetch({ path: `/wp/v2/categories?${params.toString()}` })
 			.then((data) => {
 				if (cancelled) return;
-				setCats(Array.isArray(data) ? data : []);
+
+				const arr = Array.isArray(data) ? data : [];
+				// extra safety: only categories that actually have posts
+				const nonEmpty = arr.filter((c) => Number(c?.count) > 0);
+
+				setCats(nonEmpty);
 			})
-			.catch((e) => {
-				if (!cancelled) setError(e?.message || "Failed to load categories");
+			.catch(() => {
+				if (!cancelled) setCats([]);
 			})
 			.finally(() => {
 				if (!cancelled) setLoadingCats(false);
@@ -55,6 +76,11 @@ export default function App({ perPage = 6, columns = 3 }) {
 		};
 	}, []);
 
+	const currentLangCatIds = useMemo(
+		() => cats.map((c) => c.id).filter(Boolean),
+		[cats],
+	);
+
 	// Fetch posts
 	useEffect(() => {
 		let cancelled = false;
@@ -62,7 +88,12 @@ export default function App({ perPage = 6, columns = 3 }) {
 		setError("");
 
 		apiFetch({
-			path: buildPostsPath({ perPage, page, cat: activeCat }),
+			path: buildPostsPath({
+				perPage,
+				page,
+				cat: activeCat,
+				catIds: activeCat === 0 ? currentLangCatIds : [],
+			}),
 			parse: false,
 		})
 			.then(async (res) => {
@@ -83,7 +114,7 @@ export default function App({ perPage = 6, columns = 3 }) {
 		return () => {
 			cancelled = true;
 		};
-	}, [perPage, page, activeCat]);
+	}, [perPage, page, activeCat, currentLangCatIds]);
 
 	const gridStyle = useMemo(
 		() => ({
@@ -91,7 +122,7 @@ export default function App({ perPage = 6, columns = 3 }) {
 			gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
 			gap: "1.5rem",
 		}),
-		[columns]
+		[columns],
 	);
 
 	const onSelectCat = (catId) => {
@@ -105,7 +136,7 @@ export default function App({ perPage = 6, columns = 3 }) {
 	return (
 		<div className="hide-wp-block-classes alignwide mb-3">
 			{/* Filters only show once categories are ready */}
-			{!loadingCats && cats.length > 1 && (
+			{!loadingCats && cats.length > 0 && (
 				<div className="mb-3">
 					<PostsFilters
 						cats={cats}

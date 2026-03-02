@@ -17,11 +17,11 @@ export default function PostsGridSkeleton() {
 		<div style={gridStyle}>
 			{Array.from({ length: perPage }).map((_, i) => (
 				<article key={i}>
-					<div className="card h-100 border-0" style={{backgroundColor: "red"}} aria-hidden="true">
+					<div className="card h-100 border-0" style={{backgroundColor: "lightgray"}} aria-hidden="true">
 						{/* image */}
 						<span
 							className="card-img-top placeholder"
-							style={{ aspectRatio: "4 / 3", display: "block" }}
+							style={{ aspectRatio: "16 / 9", display: "block" }}
 						/>
 
 						<div className="card-body d-flex flex-column">
@@ -56,14 +56,6 @@ export default function PostsGridSkeleton() {
 								<span className="placeholder col-10" />
 								<span className="placeholder col-8" />
 							</p>
-
-							{/* button */}
-							<a
-								href="#"
-								tabIndex="-1"
-								className="btn btn-primary disabled placeholder col-6"
-								aria-disabled="true"
-							/>
 						</div>
 					</div>
 				</article>
