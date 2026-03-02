@@ -28,10 +28,11 @@ const buildPostsPath = ({ perPage, page, cat, catIds = [] }) => {
 
 	return `/wp/v2/posts?${params.toString()}`;
 };
-export default function App({ perPage = 6, columns = 3 }) {
+
+function App({ perPage = 6, columns = 3, defaultCat = 0, showFilters = true }) {
 	const [cats, setCats] = useState([]);
-	const [activeCat, setActiveCat] = useState(0);
-	const [loadingCats, setLoadingCats] = useState(true);
+	const [activeCat, setActiveCat] = useState(Number(defaultCat) || 0);
+	const [loadingCats, setLoadingCats] = useState(showFilters);
 
 	const [page, setPage] = useState(1);
 	const [posts, setPosts] = useState([]);
@@ -40,8 +41,21 @@ export default function App({ perPage = 6, columns = 3 }) {
 
 	const [error, setError] = useState("");
 
-	// Fetch categories
+	// Keep activeCat in sync if defaultCat changes (e.g. different archive template render)
 	useEffect(() => {
+		const next = Number(defaultCat) || 0;
+		setActiveCat(next);
+		setPage(1);
+	}, [defaultCat]);
+
+	// Fetch categories (ONLY if filters are enabled)
+	useEffect(() => {
+		if (!showFilters) {
+			setCats([]);
+			setLoadingCats(false);
+			return;
+		}
+
 		let cancelled = false;
 
 		const lang = getPolylangLang();
@@ -59,7 +73,6 @@ export default function App({ perPage = 6, columns = 3 }) {
 				if (cancelled) return;
 
 				const arr = Array.isArray(data) ? data : [];
-				// extra safety: only categories that actually have posts
 				const nonEmpty = arr.filter((c) => Number(c?.count) > 0);
 
 				setCats(nonEmpty);
@@ -74,7 +87,7 @@ export default function App({ perPage = 6, columns = 3 }) {
 		return () => {
 			cancelled = true;
 		};
-	}, []);
+	}, [showFilters]);
 
 	const currentLangCatIds = useMemo(
 		() => cats.map((c) => c.id).filter(Boolean),
@@ -125,13 +138,13 @@ export default function App({ perPage = 6, columns = 3 }) {
 		setPage(1);
 	};
 
-	// 🔑 SINGLE SOURCE OF TRUTH FOR LOADING UI
-	const isLoading = loadingCats || loadingPosts;
+	// When filters are off, categories are irrelevant to loading state
+	const isLoading = (showFilters ? loadingCats : false) || loadingPosts;
 
 	return (
 		<div className="hide-wp-block-classes alignwide mb-3">
-			{/* Filters only show once categories are ready */}
-			{!loadingCats && cats.length > 0 && (
+			{/* Filters only show if enabled */}
+			{showFilters && !loadingCats && cats.length > 0 && (
 				<div className="mb-3">
 					<PostsFilters
 						cats={cats}
@@ -143,12 +156,11 @@ export default function App({ perPage = 6, columns = 3 }) {
 
 			{error && <div className="bpffb-error alert alert-danger">{error}</div>}
 
-			{/* ONE loader. ALWAYS the skeleton. */}
 			{isLoading ? (
 				<PostsGridSkeleton />
 			) : (
 				<>
-					<PostGrid posts={posts}/>
+					<PostGrid posts={posts} />
 					<PostsPagination
 						page={page}
 						totalPages={totalPages}
@@ -161,3 +173,5 @@ export default function App({ perPage = 6, columns = 3 }) {
 		</div>
 	);
 }
+
+export default App;

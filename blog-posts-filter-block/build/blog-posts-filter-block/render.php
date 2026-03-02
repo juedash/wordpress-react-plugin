@@ -30,14 +30,21 @@ wp_add_inline_script(
 	'window.i18n = ' . wp_json_encode($strings) . ';',
 	'before'
 );
+
 $per_page = isset($attributes['perPage']) ? (int) $attributes['perPage'] : 6;
 $columns = isset($attributes['columns']) ? (int) $attributes['columns'] : 3;
 
-$wrapper_attributes = get_block_wrapper_attributes();
-?>
+$default_cat = 0;
+$show_filters = true;
 
+if (is_category()) {
+	$default_cat = (int) get_queried_object_id();
+	$show_filters = false;
+}
+?>
 
 <div <?php echo $wrapper_attributes; ?>>
 	<div class="bpffb-root" data-per-page="<?php echo esc_attr($per_page); ?>"
-		data-columns="<?php echo esc_attr($columns); ?>"></div>
+		data-columns="<?php echo esc_attr($columns); ?>" data-default-cat="<?php echo esc_attr($default_cat); ?>"
+		data-show-filters="<?php echo esc_attr($show_filters ? '1' : '0'); ?>"></div>
 </div>
