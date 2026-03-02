@@ -105,7 +105,11 @@ export default function App({ perPage = 6, columns = 3 }) {
 				setTotalPages(tp || 1);
 			})
 			.catch((e) => {
-				if (!cancelled) setError(e?.message || "Failed to load posts");
+				if (!cancelled)
+					setError(
+						e?.message ||
+							(window.i18n?.loadPostsError ?? "Error loading posts"),
+					);
 			})
 			.finally(() => {
 				if (!cancelled) setLoadingPosts(false);
@@ -115,15 +119,6 @@ export default function App({ perPage = 6, columns = 3 }) {
 			cancelled = true;
 		};
 	}, [perPage, page, activeCat, currentLangCatIds]);
-
-	const gridStyle = useMemo(
-		() => ({
-			display: "grid",
-			gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
-			gap: "1.5rem",
-		}),
-		[columns],
-	);
 
 	const onSelectCat = (catId) => {
 		setActiveCat(catId);
@@ -153,7 +148,7 @@ export default function App({ perPage = 6, columns = 3 }) {
 				<PostsGridSkeleton />
 			) : (
 				<>
-					<PostGrid posts={posts} gridStyle={gridStyle} />
+					<PostGrid posts={posts}/>
 					<PostsPagination
 						page={page}
 						totalPages={totalPages}

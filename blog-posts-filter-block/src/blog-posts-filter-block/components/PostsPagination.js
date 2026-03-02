@@ -18,10 +18,10 @@ export default function PostsPagination({
 		<div className="pagination justify-content-center mt-4 d-flex gap-2 align-items-center">
 			{page > 1 && (
 				<a className="prev-next icon-link" onClick={onPrev}>
-					Previous
 					<svg className="icon">
 						<use href="/wp-content/themes/kp-theme/assets/fonts/icon.svg#chevron-left" />
 					</svg>
+					{window.i18n?.previous ?? "Previous"}
 				</a>
 			)}
 
@@ -40,7 +40,7 @@ export default function PostsPagination({
 
 			{page < totalPages && (
 				<a className="prev-next icon-link" onClick={onNext}>
-					Next
+					{window.i18n?.next ?? "Next"}
 					<svg className="icon">
 						<use href="/wp-content/themes/kp-theme/assets/fonts/icon.svg#chevron-right" />
 					</svg>

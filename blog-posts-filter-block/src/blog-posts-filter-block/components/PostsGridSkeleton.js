@@ -2,22 +2,16 @@ import { useMemo } from "@wordpress/element";
 
 export default function PostsGridSkeleton() {
 	const perPage = 6;
-	const columns = 3;
-
-	const gridStyle = useMemo(
-		() => ({
-			display: "grid",
-			gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
-			gap: "1.5rem",
-		}),
-		[columns],
-	);
 
 	return (
-		<div style={gridStyle}>
+		<div className="row gx-4 gy-5">
 			{Array.from({ length: perPage }).map((_, i) => (
-				<article key={i}>
-					<div className="card h-100 border-0" style={{backgroundColor: "lightgray"}} aria-hidden="true">
+				<article key={i} className="col-12 col-md-6 col-lg-4 ">
+					<div
+						className="card border-0"
+						style={{ backgroundColor: "lightgray" }}
+						aria-hidden="true"
+					>
 						{/* image */}
 						<span
 							className="card-img-top placeholder"
@@ -33,17 +27,26 @@ export default function PostsGridSkeleton() {
 							{/* pills + read time */}
 							<div className="d-flex gap-2 align-items-center mb-3 flex-wrap">
 								<span className="placeholder-glow">
-									<span className="placeholder rounded-pill" style={{ width: "4.5rem" }}>
+									<span
+										className="placeholder rounded-pill"
+										style={{ width: "4.5rem" }}
+									>
 										&nbsp;
 									</span>
 								</span>
 								<span className="placeholder-glow">
-									<span className="placeholder rounded-pill" style={{ width: "4.5rem" }}>
+									<span
+										className="placeholder rounded-pill"
+										style={{ width: "4.5rem" }}
+									>
 										&nbsp;
 									</span>
 								</span>
 								<span className="ms-auto placeholder-glow">
-									<span className="placeholder rounded-pill" style={{ width: "3.5rem" }}>
+									<span
+										className="placeholder rounded-pill"
+										style={{ width: "3.5rem" }}
+									>
 										&nbsp;
 									</span>
 								</span>

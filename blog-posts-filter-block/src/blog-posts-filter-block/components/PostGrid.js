@@ -23,30 +23,20 @@ const estimateReadTime = (html = "", wpm = 200) => {
 	const words = text ? text.split(" ").length : 0;
 	const minutes = Math.max(1, Math.round(words / wpm));
 
-	return `${minutes} min`;
+	return `${minutes} ${window.i18n?.minuteRead ?? "minute read"}`;
 };
 
-export default function PostGrid({ posts = [], gridStyle }) {
-	const fallbackGridStyle = useMemo(
-		() => ({
-			display: "grid",
-			gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-			gap: "1.5rem",
-		}),
-		[],
-	);
-
-	const style = gridStyle || fallbackGridStyle;
+export default function PostGrid({ posts = [] }) {
 
 	return (
-		<div style={style}>
+		<div className="row gx-4 gy-5">
 			{posts.map((p) => {
 				const img = getFeaturedImage(p);
 				const postCats = getCategories(p);
 				const readTime = estimateReadTime(p?.content?.rendered || "");
 
 				return (
-					<article key={p.id} className="h-100 d-flex flex-column border-0">
+					<article key={p.id} className="col-12 col-md-6 col-lg-4 d-flex flex-column justify-content-between border-0">
 						{img.url && (
 							<a href={p.link} className="mb-3">
 								<img
@@ -63,7 +53,7 @@ export default function PostGrid({ posts = [], gridStyle }) {
 							</a>
 						)}
 
-						<div className="d-flex gap-2 align-items-center mb-2 flex-wrap">
+						<div className="d-flex gap-3 align-items-center mb-2 flex-wrap">
 							{postCats.map((t) => (
 								<a
 									key={t.id}
@@ -74,10 +64,11 @@ export default function PostGrid({ posts = [], gridStyle }) {
 								</a>
 							))}
 
-							<span className="small text-muted">{readTime} read</span>
+							<span className="small text-muted">{readTime}</span>
 						</div>
-						<a href={p.link} className="mb-2 text-decoration-none text-body">
-							<h3
+						<a href={p.link} className=" text-decoration-none">
+							<h5
+								class="text-body"
 								dangerouslySetInnerHTML={{ __html: p.title.rendered }}
 							/>
 						</a>
@@ -88,8 +79,12 @@ export default function PostGrid({ posts = [], gridStyle }) {
 								dangerouslySetInnerHTML={{ __html: p.excerpt.rendered }}
 							/>
 
-							<a className="icon-link" href={p.link} style={{width: "max-content"}}>
-								Read more
+							<a
+								className="icon-link"
+								href={p.link}
+								style={{ width: "max-content" }}
+							>
+								{window.i18n?.readMore ?? "Read more"}
 								<svg className="icon">
 									<use href="/wp-content/themes/kp-theme/assets/fonts/icon.svg#chevron-right" />
 								</svg>
