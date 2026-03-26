@@ -12,7 +12,7 @@ const getPolylangLang = () => {
 	return short || "";
 };
 
-const buildPostsPath = ({ perPage, page, cat, catIds = [] }) => {
+const buildPostsPath = ({ perPage, page, cat, tag, catIds = [] }) => {
 	const params = new URLSearchParams();
 	params.set("per_page", String(perPage));
 	params.set("page", String(page));
@@ -20,7 +20,9 @@ const buildPostsPath = ({ perPage, page, cat, catIds = [] }) => {
 	params.set("orderby", "date");
 	params.set("order", "desc");
 
-	if (cat && Number(cat) > 0) {
+	if (tag && Number(tag) > 0) {
+		params.set("tags", String(tag));
+	} else if (cat && Number(cat) > 0) {
 		params.set("categories", String(cat));
 	} else if (Array.isArray(catIds) && catIds.length) {
 		params.set("categories", catIds.join(","));
@@ -29,9 +31,16 @@ const buildPostsPath = ({ perPage, page, cat, catIds = [] }) => {
 	return `/wp/v2/posts?${params.toString()}`;
 };
 
-function App({ perPage = 6, columns = 3, defaultCat = 0, showFilters = true }) {
+function App({
+	perPage = 6,
+	columns = 3,
+	defaultCat = 0,
+	defaultTag = 0,
+	showFilters = true,
+}) {
 	const [cats, setCats] = useState([]);
 	const [activeCat, setActiveCat] = useState(Number(defaultCat) || 0);
+	const [activeTag, setActiveTag] = useState(Number(defaultTag) || 0);
 	const [loadingCats, setLoadingCats] = useState(showFilters);
 
 	const [page, setPage] = useState(1);
@@ -41,14 +50,14 @@ function App({ perPage = 6, columns = 3, defaultCat = 0, showFilters = true }) {
 
 	const [error, setError] = useState("");
 
-	// Keep activeCat in sync if defaultCat changes (e.g. different archive template render)
+	// Keep archive defaults in sync
 	useEffect(() => {
-		const next = Number(defaultCat) || 0;
-		setActiveCat(next);
+		setActiveCat(Number(defaultCat) || 0);
+		setActiveTag(Number(defaultTag) || 0);
 		setPage(1);
-	}, [defaultCat]);
+	}, [defaultCat, defaultTag]);
 
-	// Fetch categories (ONLY if filters are enabled)
+	// Fetch categories only if filters are enabled
 	useEffect(() => {
 		if (!showFilters) {
 			setCats([]);
@@ -66,7 +75,7 @@ function App({ perPage = 6, columns = 3, defaultCat = 0, showFilters = true }) {
 		params.set("hide_empty", "1");
 		params.set("orderby", "name");
 		params.set("order", "asc");
-		if (lang) params.set("lang", lang); // Polylang REST must support this
+		if (lang) params.set("lang", lang);
 
 		apiFetch({ path: `/wp/v2/categories?${params.toString()}` })
 			.then((data) => {
@@ -105,7 +114,8 @@ function App({ perPage = 6, columns = 3, defaultCat = 0, showFilters = true }) {
 				perPage,
 				page,
 				cat: activeCat,
-				catIds: activeCat === 0 ? currentLangCatIds : [],
+				tag: activeTag,
+				catIds: activeCat === 0 && activeTag === 0 ? currentLangCatIds : [],
 			}),
 			parse: false,
 		})
@@ -118,11 +128,12 @@ function App({ perPage = 6, columns = 3, defaultCat = 0, showFilters = true }) {
 				setTotalPages(tp || 1);
 			})
 			.catch((e) => {
-				if (!cancelled)
+				if (!cancelled) {
 					setError(
 						e?.message ||
 							(window.i18n?.loadPostsError ?? "Error loading posts"),
 					);
+				}
 			})
 			.finally(() => {
 				if (!cancelled) setLoadingPosts(false);
@@ -131,21 +142,20 @@ function App({ perPage = 6, columns = 3, defaultCat = 0, showFilters = true }) {
 		return () => {
 			cancelled = true;
 		};
-	}, [perPage, page, activeCat, currentLangCatIds]);
+	}, [perPage, page, activeCat, activeTag, currentLangCatIds]);
 
 	const onSelectCat = (catId) => {
 		setActiveCat(catId);
+		setActiveTag(0);
 		setPage(1);
 	};
 
-	// When filters are off, categories are irrelevant to loading state
 	const isLoading = (showFilters ? loadingCats : false) || loadingPosts;
 
 	return (
 		<div className="hide-wp-block-classes alignwide mb-3">
-			{/* Filters only show if enabled */}
 			{showFilters && !loadingCats && cats.length > 0 && (
-				<div className="mb-3">
+				<div className="mb-5">
 					<PostsFilters
 						cats={cats}
 						activeCat={activeCat}

@@ -1,13 +1,5 @@
 <?php
-/**
- * Server-side rendering of the block.
- *
- * @param array $attributes Block attributes.
- * @return void
- */
-
 defined('ABSPATH') || exit;
-
 
 $handle = 'bpffb-blog-posts-filter-view-script';
 
@@ -22,7 +14,6 @@ $strings = [
 	'previous' => function_exists('pll__') ? pll__('Previous', 'blog-posts-filter-block') : 'Previous',
 	'next' => function_exists('pll__') ? pll__('Next', 'blog-posts-filter-block') : 'Next',
 	'loadPostsError' => function_exists('pll__') ? pll__('Failed to load posts', 'blog-posts-filter-block') : 'Error loading posts',
-
 ];
 
 wp_add_inline_script(
@@ -35,10 +26,16 @@ $per_page = isset($attributes['perPage']) ? (int) $attributes['perPage'] : 6;
 $columns = isset($attributes['columns']) ? (int) $attributes['columns'] : 3;
 
 $default_cat = 0;
+$default_tag = 0;
 $show_filters = true;
 
 if (is_category()) {
 	$default_cat = (int) get_queried_object_id();
+	$show_filters = false;
+}
+
+if (is_tag()) {
+	$default_tag = (int) get_queried_object_id();
 	$show_filters = false;
 }
 ?>
@@ -46,5 +43,6 @@ if (is_category()) {
 <div <?php echo $wrapper_attributes; ?>>
 	<div class="bpffb-root" data-per-page="<?php echo esc_attr($per_page); ?>"
 		data-columns="<?php echo esc_attr($columns); ?>" data-default-cat="<?php echo esc_attr($default_cat); ?>"
+		data-default-tag="<?php echo esc_attr($default_tag); ?>"
 		data-show-filters="<?php echo esc_attr($show_filters ? '1' : '0'); ?>"></div>
 </div>
