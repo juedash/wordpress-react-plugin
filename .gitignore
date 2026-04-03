@@ -15,8 +15,6 @@
 
 # plugin dev files
 **/build/
-**/package-lock.json
-**/package.json
 **/webpack.config.js
 **/webpack.config.*
 **/.eslintrc
