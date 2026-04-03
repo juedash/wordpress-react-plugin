@@ -1,0 +1,30 @@
+# dependencies
+node_modules/
+
+# build artifacts you do not want in git
+*.zip
+*.log
+*.map
+
+# wordpress env
+.wp-env.json
+.wp-env.override.json
+
+# git internals inside nested folders, if any
+**/.git
+
+# plugin dev files
+**/src/
+**/package-lock.json
+**/package.json
+**/webpack.config.js
+**/webpack.config.*
+**/.eslintrc
+**/.eslintrc.*
+**/.prettierrc
+**/.prettierrc.*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/

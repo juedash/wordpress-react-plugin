@@ -2,19 +2,17 @@ import { createRoot } from "react-dom/client";
 import App from "./app";
 
 document.querySelectorAll(".bpffb-root").forEach((el) => {
-  const perPage = Number(el.dataset.perPage || "6");
-  const columns = Number(el.dataset.columns || "3");
-  const defaultCat = Number(el.dataset.defaultCat || "0");
-  const defaultTag = Number(el.dataset.defaultTag || "0");
-  const showFilters = (el.dataset.showFilters || "1") === "1";
+	const perPage = Number(el.dataset.perPage || "6");
+	const columns = Number(el.dataset.columns || "3");
+	const archiveType = el.dataset.archiveType || "";
+	const archiveId = Number(el.dataset.archiveId || "0");
 
-  createRoot(el).render(
-    <App
-      perPage={perPage}
-      columns={columns}
-      defaultCat={defaultCat}
-      defaultTag={defaultTag}
-      showFilters={showFilters}
-    />
-  );
+	createRoot(el).render(
+		<App
+			perPage={perPage}
+			columns={columns}
+			archiveType={archiveType}
+			archiveId={archiveId}
+		/>
+	);
 });

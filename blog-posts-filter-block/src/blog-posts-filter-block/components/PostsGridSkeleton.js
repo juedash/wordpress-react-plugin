@@ -1,5 +1,3 @@
-import { useMemo } from "@wordpress/element";
-
 export default function PostsGridSkeleton() {
 	const perPage = 6;
 

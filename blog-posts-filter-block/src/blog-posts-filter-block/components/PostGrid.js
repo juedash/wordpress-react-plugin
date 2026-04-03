@@ -1,4 +1,3 @@
-import { useMemo } from "@wordpress/element";
 import { decodeEntities } from "@wordpress/html-entities";
 
 const getFeaturedImage = (post) => {
@@ -68,7 +67,7 @@ export default function PostGrid({ posts = [] }) {
 						</div>
 						<a href={p.link} className=" text-decoration-none">
 							<h5
-								class="text-body"
+								className="text-body"
 								dangerouslySetInnerHTML={{ __html: p.title.rendered }}
 							/>
 						</a>
