@@ -1,0 +1,13 @@
+{
+  "apiVersion": 2,
+  "name": "bp/related-posts",
+  "title": "Related Posts",
+  "category": "widgets",
+  "icon": "admin-post",
+  "description": "Show related posts based on categories",
+  "supports": {
+    "html": false
+  },
+  "viewScript": "file:./view.js",
+  "render": "file:./render.php"
+}
