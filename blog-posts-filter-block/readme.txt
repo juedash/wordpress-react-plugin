@@ -55,5 +55,3 @@ plugins where more information needs to be conveyed that doesn't fit into the ca
 "installation." Arbitrary sections will be shown below the built-in sections outlined above.
 
 
-Run local project
- npx @wordpress/env start
